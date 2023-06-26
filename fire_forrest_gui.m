@@ -1,3 +1,6 @@
+% initialize the world randomly
+shared.world = zeros(numrows, numcols);  % 0: white, 1: green, 2: orange, 3: red/black
+
 %popup window
 shared.fig = figure(
   "position", [160,90,1600,900],
@@ -11,10 +14,10 @@ shared.fig = figure(
 shared.axs = axes(
   "units", "pixels",
   "position", [20, 15, 1000, 870],
-  "colormap", ([134, 188, 78; 0, 0, 0] ./ 255)
+  "colormap", ([76, 108, 35; 175, 210, 137] ./ 255)
 );
 
-% on/of button
+% play stop button
 shared.play_tgl = uicontrol(
   "style", "togglebutton",
   "units", "pixels",
@@ -32,7 +35,7 @@ shared.p_value_sld = uicontrol(
   "units", "pixels",
   "value", 0.01,
   "sliderstep", [0.0010000 0.0100000],
-  "position", [1132 760 350 30],
+  "position", [1132 620 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0],
   "callback", @click_play_stop,
@@ -43,8 +46,8 @@ shared.p_value_sld = uicontrol(
 shared.p_value_lbl = uicontrol(
   "style", "text",
   "units", "pixels",
-  "position", [1132 790 350 30],
-  "string", "Regrow factor of the forrest",
+  "position", [1132 650 350 30],
+  "string", "Regrow factor of the forrest, P",
   "fontsize", 10,
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "foregroundcolor", [1, 1, 1]
@@ -79,7 +82,7 @@ shared.speed_sld = uicontrol(
   "style", "slider",
   "units", "pixels",
   "value", 0.5,
-  "position", [1132 620 350 30],
+  "position", [1132 760 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0.0],
   "callback", @click_playstop,
@@ -90,9 +93,258 @@ shared.speed_sld = uicontrol(
 shared.speed_lbl = uicontrol(
   "style", "text",
   "units", "pixels",
-  "position", [1132 650 350 30],
+  "position", [1132 790 350 30],
   "string", "speediness",
   "fontsize", 10,
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "foregroundcolor", [1, 1, 1]
 );
+
+% clear button
+shared.cl_btn = uicontrol(
+  "units", "pixels",
+  "style", "pushbutton",
+  "position", [1132 225 175 50],
+  "backgroundcolor", ([218, 234, 215] ./ 255),
+  "string", "Clear",
+  "foregroundcolor", [0 , 0, 0.0],
+  "callback", @click_clear,
+  "tooltipstring", "Clear screen"
+  );
+
+% button to make random world
+shared.rnd_btn = uicontrol("units", "pixels",
+  "style", "pushbutton",
+  "position", [1330 225 175 50],
+  "backgroundcolor", ([218, 234, 215] ./ 255),
+  "string", "Random",
+  "foregroundcolor", [0 , 0, 0.0],
+  "callback", @click_rand,
+  "tooltipstring", "Makes random beauty"
+  );
+
+% button to save file
+shared.save_btn = uicontrol(
+  "units", "pixels",
+  "style", "pushbutton",
+  "position", [1330 15 175 50],
+  "backgroundcolor", ([218, 234, 215] ./ 255),
+  "string", "Save",
+  "foregroundcolor", [0 , 0, 0.0],
+  "callback", @click_save,
+  "tooltipstring", "Save the pretty world"
+);
+
+% button to load file
+shared.load_btn = uicontrol(
+  "units", "pixels",
+  "style", "pushbutton",
+  "position", [1132 15 175 50],
+  "backgroundcolor", ([218, 234, 215] ./ 255),
+  "string", "Load",
+  "foregroundcolor", [0 , 0, 0.0],
+  "callback", @click_load,
+  "tooltipstring", "Load a pretty world"
+);
+
+% make colors purple
+shared.color_box_prp = uicontrol(
+  "units", "pixels",
+  "style", "checkbox",
+  "position", [1232 300 150 40],
+  "backgroundcolor", ([38, 38, 23] ./ 255),
+  "string", "Purple",
+  "foregroundcolor", [1 , 1, 1],
+  "callback", @click_color_prp,
+  "tooltipstring", "change color of the world"
+);
+
+% make colors inverse
+shared.color_box_inv = uicontrol(
+  "units", "pixels",
+  "style", "checkbox",
+  "position", [1132 300 100 40],
+  "backgroundcolor", ([38, 38, 23] ./ 255),
+  "string", "Inverse",
+  "foregroundcolor", [1 , 1, 1],
+  "callback", @click_color_inv,
+  "tooltipstring", "change color of the world"
+);
+
+function click_step(source, event)
+  %Creates next generation of world
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+  %get data
+  shared = guidata(source);
+
+numrows = 50;    % number of rows
+numcols = 100;   % number of columns
+
+
+tree = get(shared.f_value_sld, "value");   % probability of a cell becoming a tree
+fire = get(shared.p_value_sld, "value");  % probability of a tree catching fire
+
+world = shared.world
+
+% Preallocate new_world matrix
+new_world = zeros(numrows, numcols);
+neighborhood = [0 1 0; 1 1 1; 0 1 0];
+new_world = world;
+  % Count green and red neighbors using matrix operations and logical indexing
+  greenneighbors = conv2(world == 1, neighborhood, 'same') - (world == 1);
+  redneighbors = conv2(world == 2, neighborhood, 'same') - (world == 2);
+
+  % Update new_world based on the rules
+  new_world(world == 1 & redneighbors >= 1) = 2;  % Tree lights on fire
+  new_world(world == 0 & rand(numrows, numcols) < tree) = 1;  % Becomes a tree
+  new_world(world == 1 & rand(numrows, numcols) < fire) = 2;  % Lights on fire
+  new_world(world == 2) = 0;  % Cell died
+
+  % Update the world using logical indexing
+  world = new_world;
+
+endfunction
+
+% makes a movie of the world and her generations
+function click_play_stop(source, event)
+   % play a movie of the world
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+  %get data
+  shared = guidata(source);
+  if get(shared.play_tgl, "value")
+    %starts
+    set(shared.play_tgl, "string", "Stop", "tooltipstring", "stop animaition");
+    while ishandle(shared.play_tgl) && get(shared.play_tgl, "value")
+      click_step(source, event);
+      drawnow();
+      pause((1.0 - get(shared.speed_sld, "value") .^ 2));
+    endwhile
+  elseif
+    %stop
+    set(shared.play_tgl, "string", "Play", "tooltipstring", "play animaition");
+  endif
+endfunction
+
+
+%Makes world clean
+function click_clear(source, event)
+   % clear world of user
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+    % get data
+     shared = guidata(source);
+    % request
+    choice = questdlg("Are you sure to clear the world?", "Confirmation", "yes", "cancel");
+    if strcmp(choice, "Yes")
+       if get(shared.play_tgl, "value")
+        set(shared.play_tgl, "value", 0, "string", "Play", "tooltipstring", "play animaition");
+        drawnow();
+       endif
+       % make empy world
+      shared.world = logical(zeros(150,100));
+      set(shared.img, "cdata", shared.world);
+      guidata(source, shared);
+    endif
+endfunction
+
+% makes random world
+function click_rand(source, event)
+   % Make random world
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+
+   % get data
+  shared = guidata(source);
+  % request
+  choice = questdlg("Are you sure to clear the world?", "Confirmation", "yes", "cancel");
+  if strcmp(choice, "Yes")
+     if get(shared.play_tgl, "value")
+      set(shared.play_tgl, "value", 0, "string", "Play", "tooltipstring", "play animaition");
+      drawnow();
+     endif
+     % make random world
+    shared.world = (rand(100, 60) < 1/8);%make ff random worlddd
+    shared.step2 = 0;
+    set(shared.img, "cdata", shared.world);
+    guidata(source, shared);
+  endif
+endfunction
+
+%saves world to file
+function click_save(source, event)
+   % save world of user
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+  % get data
+  shared = guidata(source);
+    % put file in good spot
+    filename = uiputfile(
+      {"*.bmp;*.gif;*.png", "Supported image formats"; "*.csv;*.txt", "Supported text data formats"},
+      "Choose filename");
+    if (length(filename) > 4)
+      % get data
+      shared = guidata(source);
+      if strcmpi(filename(end-3 : end), ".bmp") || strcmpi(filename(end-3 : end), ".gif") ...
+        || strcmpi(filename(end-3 : end), ".png") % if correct end
+        colormap = get(shared.display_axs, "colormap");
+        imwrite(uint8(shared.world), colormap, filename)   % write world to file
+      elseif strcmpi(filename(end-3 : end), ".csv") || strcmpi(filename(end-3 : end), ".txt")  % if correct end
+        csvwrite(filename, uint8(shared.world))
+      else
+        msgbox("Wrong type of file can only use .bmp, .gif or .png as image and .csv and txt for text", "Wrong type file")
+      endif
+    endif
+  endfunction
+
+
+function click_load(source, event)
+  %load file to display
+    % Load world of user
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+    % is the game on
+  % get data
+  shared = guidata(source);
+  % get file
+  file = uigetfile("*.csv", "Selecteer file");
+  %open file
+  shared.world = csvread(file);
+  if shared.world == 1 | shared.world == 0 % check if file is ok
+    % show file in gui
+    set(shared.img, "cdata", shared.world);
+    shared = guidata(source, shared);
+  else
+    msgbox("Wrong file can only have 1 and 0 as content", "Wrong content")
+  endif
+
+endfunction
+
+function click_color_inv(source, event)
+   % change color of world to inverse
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+
+  % get data
+  shared = guidata(source);
+  if get(shared.color_box_inv, "value")
+    set(shared.axs, "colormap", ([175, 210, 137 ; 76, 108, 35] ./ 255)) % make world inverse
+  else
+    set(shared.axs, "colormap", ([76, 108, 35; 175, 210, 137] ./ 255))  % make world normal
+  endif
+endfunction
+
+function click_color_prp(source, event)
+   % change color of world to less purple tint
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+
+  % get data
+  shared = guidata(source);
+  if get(shared.color_box_prp, "value")
+    set(shared.axs, "colormap", ([237, 227, 233 ; 131, 111, 155] ./ 255))  % make world inverse
+  else
+    set(shared.axs, "colormap", ([76, 108, 35; 175, 210, 137] ./ 255))  % make world normal
+  endif
+endfunction
