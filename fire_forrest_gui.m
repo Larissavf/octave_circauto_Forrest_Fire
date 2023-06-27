@@ -174,7 +174,7 @@ shared.color_box_inv = uicontrol(
   "tooltipstring", "change color of the world"
 );
 
-shared.img = imagesc(shared.axs, shared.world, (0:1));
+shared.img = imagesc(shared.axs, shared.world, [0 2]);
 axis(shared.axs, "off");
 guidata(shared.fig, shared);
 
