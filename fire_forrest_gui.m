@@ -184,12 +184,13 @@ function click_step(source, event)
   %Creates next generation of world
     % source: Gui element that triggered function
     % event:  additional information (not used)
+    shared = guidata(source);
     numrows = 50;    % number of rows
     numcols = 100;   % number of columns
-    tree = 0.001;   % probability of a cell becoming a tree
-    fire = 0.0001;  % probability of a tree catching fire
+    tree = get(shared.p_value_sld, "value");   % probability of a cell becoming a tree
+    fire = get(shared.f_value_sld, "value"); % probability of a tree catching fire
     neighborhood = [0 1 0; 1 0 1; 0 1 0];
-    shared = guidata(source);
+
     world = shared.world;
     new_world = world;
 
@@ -210,24 +211,28 @@ function click_step(source, event)
   drawnow;
 endfunction
 
+
 % makes a movie of the world and her generations
 function click_play_stop(source, event)
-   % play a movie of the world
-    % source: Gui element that triggered function
-    % event:  additional information (not used)
-  %get data
+  % Keep stepping forward until stopped
+  %   source: GUI element that triggered function
+  %   event:  additional information (not used)
+ 
+  % Collect data
   shared = guidata(source);
+  % Check whether button was pressed or released
   if get(shared.play_tgl, "value")
-    %starts
-    set(shared.play_tgl, "string", "Stop", "tooltipstring", "stop animaition");
+    % Button pressed (i.e.: "Start"): update appearance to "Stop"
+    set(shared.play_tgl, "string", "Stop", "tooltipstring", "Stop animation");
+    % Keep stepping forward one generation until button is released
     while ishandle(shared.play_tgl) && get(shared.play_tgl, "value")
       click_step(source, event);
-      drawnow();
-      pause((1.0 - get(shared.speed_sld, "value") .^ 2));
+      duration = (1.0 - get(shared.speed_sld, "value")) .^ 2;
+      pause(duration);
     endwhile
-  elseif
-    %stop
-    set(shared.play_tgl, "string", "Play", "tooltipstring", "play animaition");
+  else
+    % Button released (i.e.: "Stop"): update appearance to "Start"
+    set(shared.play_tgl, "string", "Start", "tooltipstring", "Start animation");
   endif
 endfunction
 
@@ -247,7 +252,7 @@ function click_clear(source, event)
         drawnow();
        endif
        % make empy world
-      shared.world = logical(zeros(150,100));
+      shared.world = repmat(2, [numrows, numcols]);
       set(shared.img, "cdata", shared.world);
       guidata(source, shared);
     endif
