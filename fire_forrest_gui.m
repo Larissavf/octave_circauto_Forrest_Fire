@@ -1,5 +1,8 @@
 % initialize the world randomly
-shared.world = zeros(numrows, numcols);  % 0: white, 1: green, 2: orange, 3: red/black
+numrows = 50;    % number of rows
+numcols = 100;   % number of columns
+
+shared.world = repmat(2, [numrows, numcols]);
 
 %popup window
 shared.fig = figure(
@@ -14,7 +17,7 @@ shared.fig = figure(
 shared.axs = axes(
   "units", "pixels",
   "position", [20, 15, 1000, 870],
-  "colormap", ([76, 108, 35; 175, 210, 137] ./ 255)
+  "colormap", ([76, 108, 35; 211, 97, 53; 239, 239, 230] ./ 255)
 );
 
 % play stop button
@@ -171,39 +174,40 @@ shared.color_box_inv = uicontrol(
   "tooltipstring", "change color of the world"
 );
 
+shared.img = imagesc(shared.axs, shared.world, (0:1));
+axis(shared.axs, "off");
+guidata(shared.fig, shared);
+
+
 function click_step(source, event)
+
   %Creates next generation of world
     % source: Gui element that triggered function
     % event:  additional information (not used)
-  %get data
-  shared = guidata(source);
+    numrows = 50;    % number of rows
+    numcols = 100;   % number of columns
+    tree = 0.001;   % probability of a cell becoming a tree
+    fire = 0.0001;  % probability of a tree catching fire
+    neighborhood = [0 1 0; 1 0 1; 0 1 0];
+    shared = guidata(source);
+    world = shared.world;
+    new_world = world;
 
-numrows = 50;    % number of rows
-numcols = 100;   % number of columns
+  % apply the rules to update the world
+  N_fire = conv2(new_world == 1, neighborhood, 'same');
+    
+    
+  new_world(world == 0 & N_fire >= 1) = 1;
+  new_world(world == 2 & rand(numrows, numcols) < tree) = 0;
+  new_world(world == 0 & rand(numrows, numcols) < fire) = 1;
+  new_world(world == 1) = 2;
 
 
-tree = get(shared.f_value_sld, "value");   % probability of a cell becoming a tree
-fire = get(shared.p_value_sld, "value");  % probability of a tree catching fire
 
-world = shared.world
-
-% Preallocate new_world matrix
-new_world = zeros(numrows, numcols);
-neighborhood = [0 1 0; 1 1 1; 0 1 0];
-new_world = world;
-  % Count green and red neighbors using matrix operations and logical indexing
-  greenneighbors = conv2(world == 1, neighborhood, 'same') - (world == 1);
-  redneighbors = conv2(world == 2, neighborhood, 'same') - (world == 2);
-
-  % Update new_world based on the rules
-  new_world(world == 1 & redneighbors >= 1) = 2;  % Tree lights on fire
-  new_world(world == 0 & rand(numrows, numcols) < tree) = 1;  % Becomes a tree
-  new_world(world == 1 & rand(numrows, numcols) < fire) = 2;  % Lights on fire
-  new_world(world == 2) = 0;  % Cell died
-
-  % Update the world using logical indexing
-  world = new_world;
-
+  shared.world = new_world;
+  set(shared.img, "cdata", shared.world);
+  guidata(source,shared); 
+  drawnow;
 endfunction
 
 % makes a movie of the world and her generations
@@ -329,9 +333,9 @@ function click_color_inv(source, event)
   % get data
   shared = guidata(source);
   if get(shared.color_box_inv, "value")
-    set(shared.axs, "colormap", ([175, 210, 137 ; 76, 108, 35] ./ 255)) % make world inverse
+    set(shared.axs, "colormap", ([211, 97, 53; 76, 108, 35; 239, 239, 230] ./ 255)) % make world inverse
   else
-    set(shared.axs, "colormap", ([76, 108, 35; 175, 210, 137] ./ 255))  % make world normal
+    set(shared.axs, "colormap", ([76, 108, 35; 211, 97, 53; 239, 239, 230] ./ 255))  % make world normal
   endif
 endfunction
 
@@ -343,8 +347,8 @@ function click_color_prp(source, event)
   % get data
   shared = guidata(source);
   if get(shared.color_box_prp, "value")
-    set(shared.axs, "colormap", ([237, 227, 233 ; 131, 111, 155] ./ 255))  % make world inverse
+    set(shared.axs, "colormap", ([ 153, 143, 199 ; 57, 54, 69; 247, 241, 249] ./ 255)) % make world purple
   else
-    set(shared.axs, "colormap", ([76, 108, 35; 175, 210, 137] ./ 255))  % make world normal
+    set(shared.axs, "colormap", ([76, 108, 35; 211, 97, 53; 239, 239, 230] ./ 255)) % make world normal
   endif
 endfunction
