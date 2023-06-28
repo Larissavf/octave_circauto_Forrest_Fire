@@ -1,5 +1,5 @@
 ______________
-# octave_circauto_Forrest_Fire
+# octave circulaire automaton Forest Fire
 Version: 1.0 | Platform: Linux Or Windows | Authors: Larissa Voshol en Jort Gommers
 ______________
 
