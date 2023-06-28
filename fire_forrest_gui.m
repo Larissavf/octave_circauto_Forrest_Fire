@@ -274,8 +274,7 @@ function click_rand(source, event)
       drawnow();
      endif
      % make random world
-    shared.world = (rand(100, 60) < 1/8);%make ff random worlddd
-    shared.step2 = 0;
+    shared.world = randi([0 2], 50,100);%make ff random worlddd
     set(shared.img, "cdata", shared.world);
     guidata(source, shared);
   endif
