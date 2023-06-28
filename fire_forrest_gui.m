@@ -1,8 +1,8 @@
 % initialize the world randomly
-numrows = 50;    % number of rows
-numcols = 100;   % number of columns
+shared.numrows = 50;    % number of rows
+shared.numcols = 100;   % number of columns
 
-shared.world = repmat(2, [numrows, numcols]);
+shared.world = repmat(2, [shared.numrows, shared.numcols]);
 
 %popup window
 shared.fig = figure(
@@ -17,7 +17,7 @@ shared.fig = figure(
 shared.axs = axes(
   "units", "pixels",
   "position", [20, 15, 1000, 870],
-  "colormap", ([76, 108, 35; 211, 97, 53; 239, 239, 230] ./ 255)
+  "colormap", ([71, 163, 62; 211, 97, 53; 239, 239, 230] ./ 255)
 );
 
 % play stop button
@@ -26,10 +26,22 @@ shared.play_tgl = uicontrol(
   "units", "pixels",
   "position", [1132 830 350 50],
   "backgroundcolor", ([218, 234, 215] ./ 255),
-  "string", "play",
+  "string", "Play",
   "foregroundcolor", [0 , 0, 0.0],
   "callback", @click_play_stop,
   "tooltipstring", "Start game"
+);
+
+% step button
+shared.step_btn = uicontrol(
+  "style", "pushbutton",
+  "units", "pixels",
+  "position", [1132 775 350 50],
+  "backgroundcolor", ([218, 234, 215] ./ 255),
+  "string", "Step",
+  "foregroundcolor", [0 , 0, 0.0],
+  "callback", @click_step,
+  "tooltipstring", "Step"
 );
 
 % P value slider
@@ -38,7 +50,7 @@ shared.p_value_sld = uicontrol(
   "units", "pixels",
   "value", 0.01,
   "sliderstep", [0.0010000 0.0100000],
-  "position", [1132 620 350 30],
+  "position", [1132 590 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0],
   "callback", @click_play_stop,
@@ -49,7 +61,7 @@ shared.p_value_sld = uicontrol(
 shared.p_value_lbl = uicontrol(
   "style", "text",
   "units", "pixels",
-  "position", [1132 650 350 30],
+  "position", [1132 620 350 30],
   "string", "Regrow factor of the forrest, P",
   "fontsize", 10,
   "backgroundcolor", ([38, 38, 23] ./ 255),
@@ -62,19 +74,19 @@ shared.f_value_sld = uicontrol(
   "units", "pixels",
   "value", 0.0001,
   "sliderstep", [0.00010000 0.00100000],
-  "position", [1132 690 350 30],
+  "position", [1132 650 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0],
   "callback", @click_play_stop,
-  "tooltipstring", "fastness of forest fire spreading"
+  "tooltipstring", "Fastness of forest fire spreading"
 );
 
 %label f value slider
 shared.p_value_lbl = uicontrol(
   "style", "text",
   "units", "pixels",
-  "position", [1132 720 350 30],
-  "string", "fastness of forest fire spreading, F",
+  "position", [1132 680 350 30],
+  "string", "Fastness of forest fire spreading, F",
   "fontsize", 10,
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "foregroundcolor", [1, 1, 1]
@@ -85,10 +97,10 @@ shared.speed_sld = uicontrol(
   "style", "slider",
   "units", "pixels",
   "value", 0.5,
-  "position", [1132 760 350 30],
+  "position", [1132 710 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0.0],
-  "callback", @click_playstop,
+  "callback", @click_play_stop,
   "tooltipstring", "Speediness"
 );
 
@@ -96,8 +108,8 @@ shared.speed_sld = uicontrol(
 shared.speed_lbl = uicontrol(
   "style", "text",
   "units", "pixels",
-  "position", [1132 790 350 30],
-  "string", "speediness",
+  "position", [1132 740 350 30],
+  "string", "Speediness",
   "fontsize", 10,
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "foregroundcolor", [1, 1, 1]
@@ -153,40 +165,75 @@ shared.load_btn = uicontrol(
 % make colors purple
 shared.color_box_prp = uicontrol(
   "units", "pixels",
-  "style", "checkbox",
+  "style", "radiobutton",
   "position", [1232 300 150 40],
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "string", "Purple",
   "foregroundcolor", [1 , 1, 1],
   "callback", @click_color_prp,
-  "tooltipstring", "change color of the world"
+  "tooltipstring", "Change color of the world"
 );
 
 % make colors inverse
 shared.color_box_inv = uicontrol(
   "units", "pixels",
-  "style", "checkbox",
+  "style", "radiobutton",
   "position", [1132 300 100 40],
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "string", "Inverse",
   "foregroundcolor", [1 , 1, 1],
   "callback", @click_color_inv,
-  "tooltipstring", "change color of the world"
+  "tooltipstring", "Change color of the world"
 );
+
+% edit button
+shared.edit_tgl = uicontrol(
+  "style", "togglebutton",
+  "units", "pixels",
+  "position", [1132 530 350 50],
+  "backgroundcolor", ([218, 234, 215] ./ 255),
+  "string", "Edit",
+  "foregroundcolor", [0 , 0, 0.0],
+  "callback", @click_edit,
+  "tooltipstring", "Edit world"
+);
+
+% help button
+shared.help_btn = uicontrol(
+  "style", "pushbutton",
+  "units", "pixels",
+  "position", [1555 15 30 30],
+  "backgroundcolor", ([218, 234, 215] ./ 255),
+  "string", "?",
+  "foregroundcolor", [0 , 0, 0.0],
+  "callback", @click_help,
+  "tooltipstring", "Help"
+);
+
+% button to save file
+shared.tree_btn = uicontrol(
+  "units", "pixels",
+  "style", "pushbutton",
+  "position", [1230 150 175 50],
+  "backgroundcolor", ([218, 234, 215] ./ 255),
+  "string", "Tree",
+  "foregroundcolor", [0 , 0, 0.0],
+  "callback", @click_tree,
+  "tooltipstring", "Make world full of tree"
+);
+
+
+
 
 shared.img = imagesc(shared.axs, shared.world, [0 2]);
 axis(shared.axs, "off");
 guidata(shared.fig, shared);
 
-
 function click_step(source, event)
-
   %Creates next generation of world
     % source: Gui element that triggered function
     % event:  additional information (not used)
     shared = guidata(source);
-    numrows = 50;    % number of rows
-    numcols = 100;   % number of columns
     tree = get(shared.p_value_sld, "value");   % probability of a cell becoming a tree
     fire = get(shared.f_value_sld, "value"); % probability of a tree catching fire
     neighborhood = [0 1 0; 1 0 1; 0 1 0];
@@ -196,33 +243,29 @@ function click_step(source, event)
 
   % apply the rules to update the world
   N_fire = conv2(new_world == 1, neighborhood, 'same');
-    
-    
+
   new_world(world == 0 & N_fire >= 1) = 1;
-  new_world(world == 2 & rand(numrows, numcols) < tree) = 0;
-  new_world(world == 0 & rand(numrows, numcols) < fire) = 1;
+  new_world(world == 2 & rand(shared.numrows, shared.numcols) < tree) = 0;
+  new_world(world == 0 & rand(shared.numrows, shared.numcols) < fire) = 1;
   new_world(world == 1) = 2;
-
-
 
   shared.world = new_world;
   set(shared.img, "cdata", shared.world);
-  guidata(source,shared); 
+  guidata(source,shared);
   drawnow;
 endfunction
 
-
 % makes a movie of the world and her generations
 function click_play_stop(source, event)
-  % Keep stepping forward until stopped
+ % Keep stepping forward until stopped
   %   source: GUI element that triggered function
   %   event:  additional information (not used)
- 
+
   % Collect data
   shared = guidata(source);
   % Check whether button was pressed or released
   if get(shared.play_tgl, "value")
-    % Button pressed (i.e.: "Start"): update appearance to "Stop"
+     % Button pressed (i.e.: "Start"): update appearance to "Stop"
     set(shared.play_tgl, "string", "Stop", "tooltipstring", "Stop animation");
     % Keep stepping forward one generation until button is released
     while ishandle(shared.play_tgl) && get(shared.play_tgl, "value")
@@ -252,7 +295,7 @@ function click_clear(source, event)
         drawnow();
        endif
        % make empy world
-      shared.world = repmat(2, [numrows, numcols]);
+      shared.world = repmat(2, [shared.numrows, shared.numcols]);
       set(shared.img, "cdata", shared.world);
       guidata(source, shared);
     endif
@@ -274,7 +317,8 @@ function click_rand(source, event)
       drawnow();
      endif
      % make random world
-    shared.world = randi([0 2], 50,100);%make ff random worlddd
+    shared.world = randi((0:2:2), shared.numrows, shared.numcols);%make random world
+    shared.step2 = 0;
     set(shared.img, "cdata", shared.world);
     guidata(source, shared);
   endif
@@ -319,12 +363,12 @@ function click_load(source, event)
   file = uigetfile("*.csv", "Selecteer file");
   %open file
   shared.world = csvread(file);
-  if shared.world == 1 | shared.world == 0 % check if file is ok
+  if shared.world == 1 | shared.world == 0 | shared.world == 2 % check if file is ok
     % show file in gui
     set(shared.img, "cdata", shared.world);
     shared = guidata(source, shared);
   else
-    msgbox("Wrong file can only have 1 and 0 as content", "Wrong content")
+    msgbox("Wrong file can only have 0, 1 and 2 as content", "Wrong content")
   endif
 
 endfunction
@@ -336,6 +380,10 @@ function click_color_inv(source, event)
 
   % get data
   shared = guidata(source);
+  % if the other color box is on
+  if get(shared.color_box_inv, "value")
+    set(shared.color_box_inv, "value", "0")
+  endif
   if get(shared.color_box_inv, "value")
     set(shared.axs, "colormap", ([211, 97, 53; 76, 108, 35; 239, 239, 230] ./ 255)) % make world inverse
   else
@@ -350,9 +398,91 @@ function click_color_prp(source, event)
 
   % get data
   shared = guidata(source);
+  % if the other color box is on
+  if get(shared.color_box_inv, "value")
+    set(shared.color_box_inv, "value", "0")
+  endif
   if get(shared.color_box_prp, "value")
     set(shared.axs, "colormap", ([ 153, 143, 199 ; 57, 54, 69; 247, 241, 249] ./ 255)) % make world purple
   else
     set(shared.axs, "colormap", ([76, 108, 35; 211, 97, 53; 239, 239, 230] ./ 255)) % make world normal
   endif
+endfunction
+
+%Makes world edit
+function click_edit(source, event)
+   % edit world of user
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+    % get data
+     shared = guidata(source);
+
+     msgbox("If you want to quit editing, press ENTER", "Close edit")
+     % set world on pause
+       if get(shared.play_tgl, "value")
+        set(shared.play_tgl, "value", 0, "string", "Play", "tooltipstring", "play animaition");
+        drawnow();
+       endif
+       % deactivate step en play button
+       set(shared.step_btn, "enable", "off", "backgroundcolor", ([51, 51, 31]/ 255))
+       set(shared.play_tgl, "enable", "off", "backgroundcolor", ([51, 51, 31]/ 255))
+       % edit world
+       do
+        [x, y, btn] = ginput(1);
+        disp(x)
+        disp(y)
+        row = round(y);
+        col = round(x);
+        if row > 0 && row <= rows(shared.world) && col > 0 && col <= columns(shared.world)
+          % left button is tree
+          if btn == 1 && shared.world(row,col) != 0
+            shared.world(row, col) = 0;
+          elseif btn == 1 && shared.world(row,col) == 0
+            shared.world(row, col) = 2;
+          % right button is fire
+          elseif btn == 3 && shared.world(row,col) != 1
+            shared.world(row, col) = 1;
+          elseif btn == 3 && shared.world(row,col) == 1
+            shared.world(row, col) = 2;
+          endif
+          % update world
+          set(shared.img, "cdata", shared.world);
+          guidata(source, shared);
+        endif
+       until isempty(x)
+       %undo edit tgl
+       set(shared.edit_tgl, "value", 0);
+       % reactivate step en play button
+       set(shared.step_btn, "enable", "on", "backgroundcolor", ([218, 234, 215] ./ 255));
+       set(shared.play_tgl, "enable", "on", "backgroundcolor", ([218, 234, 215] ./ 255));
+    set(shared.img, "cdata", shared.world); % world full with tree
+    guidata(source, shared);
+endfunction
+
+function click_help(source, event)
+   % go to help
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+    web("http://langers.nl/wiki/doku.php?id=forest_fire_2023:welkom#welkom")
+endfunction
+
+function  click_tree(source, event)
+   % world full of tree
+    % source: Gui element that triggered function
+    % event:  additional information (not used)
+    % get data
+     shared = guidata(source);
+     %stop playing
+     if get(shared.play_tgl, "value")
+      set(shared.play_tgl, "value", 0, "string", "Play", "tooltipstring", "play animaition");
+      drawnow();
+     endif
+     %request
+     choice = questdlg("Are you sure to clear the world?", "Confirmation", "yes", "cancel");
+     if strcmp(choice, "Yes")
+    shared.world = zeros(shared.numrows, shared.numcols)
+    set(shared.img, "cdata", zeros(shared.numrows, shared.numcols)); % world full with tree
+    guidata(source, shared);
+    endif
+
 endfunction
