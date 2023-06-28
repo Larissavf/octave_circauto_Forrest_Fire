@@ -25,7 +25,7 @@ Clone the repo or download the file and open it in a octave environment.
 - [@larissavos](https://github.com/larissavos)
 - [@jort20](https://github.com/Jort20)
 
-## Help 🙋‍♂️ 
+## Help 
 
 In case of difficulties contact:
 - Larissa Voshol: l.voshol@st.hanze.nl
