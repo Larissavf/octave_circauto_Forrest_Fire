@@ -11,14 +11,14 @@ the CA is based on a probability if a random drawn number will be lower than a c
 
 ```
 Linux debian 64 bit
-- octave 8.2.0
+- octave 8.2.0 or matlab
     
 Windows 11
-- octave 8.2.0
+- octave 8.2.0 or matlab
 ```
 
 ## Usage
-Clone the repo or download the file and open it in a octave environment.
+Clone the repo or download the file and open it in an octave or matlab environment.
 
 ## Authors
 
