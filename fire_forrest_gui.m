@@ -53,7 +53,7 @@ shared.p_value_sld = uicontrol(
   "position", [1132 590 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0],
-  "callback", @change_p_value,
+  "callback", @click_play_stop,
   "tooltipstring", "Regrow factor of the forrest"
 );
 
@@ -62,7 +62,7 @@ shared.p_value_lbl = uicontrol(
   "style", "text",
   "units", "pixels",
   "position", [1132 620 350 30],
-  "string", "Tree growing rate, P",
+  "string", "Regrow factor of the forrest, P",
   "fontsize", 10,
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "foregroundcolor", [1, 1, 1]
@@ -77,16 +77,16 @@ shared.f_value_sld = uicontrol(
   "position", [1132 650 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0],
-  "callback", @change_f_value,
+  "callback", @click_play_stop,
   "tooltipstring", "Fastness of forest fire spreading"
 );
 
 %label f value slider
-shared.f_value_lbl = uicontrol(
+shared.p_value_lbl = uicontrol(
   "style", "text",
   "units", "pixels",
   "position", [1132 680 350 30],
-  "string", "Tree spreading rate",
+  "string", "Fastness of forest fire spreading, F",
   "fontsize", 10,
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "foregroundcolor", [1, 1, 1]
@@ -100,7 +100,7 @@ shared.speed_sld = uicontrol(
   "position", [1132 710 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0.0],
-  "callback", @change_speed,
+  "callback", @click_play_stop,
   "tooltipstring", "Speediness"
 );
 
@@ -165,7 +165,7 @@ shared.load_btn = uicontrol(
 % make colors purple
 shared.color_box_prp = uicontrol(
   "units", "pixels",
-  "style", "radiobutton",
+  "style", "checkbox",
   "position", [1232 300 150 40],
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "string", "Purple",
@@ -177,7 +177,7 @@ shared.color_box_prp = uicontrol(
 % make colors inverse
 shared.color_box_inv = uicontrol(
   "units", "pixels",
-  "style", "radiobutton",
+  "style", "checkbox",
   "position", [1132 300 100 40],
   "backgroundcolor", ([38, 38, 23] ./ 255),
   "string", "Inverse",
@@ -229,7 +229,6 @@ shared.img = imagesc(shared.axs, shared.world, [0 2]);
 axis(shared.axs, "off");
 guidata(shared.fig, shared);
 
-% make new generation
 function click_step(source, event)
   %Creates next generation of world
     % source: Gui element that triggered function
@@ -269,7 +268,7 @@ function click_play_stop(source, event)
      % Button pressed (i.e.: "Start"): update appearance to "Stop"
     set(shared.play_tgl, "string", "Stop", "tooltipstring", "Stop animation");
     % Keep stepping forward one generation until button is released
-    while ishandle(shared.play_tgl) && get(shared.play_tgl, "value")
+    while ishandle(shared.play_tgl) && get(shared.play_tgl, "value");
       click_step(source, event);
       duration = (1.0 - get(shared.speed_sld, "value")) .^ 2;
       pause(duration);
@@ -278,45 +277,6 @@ function click_play_stop(source, event)
     % Button released (i.e.: "Stop"): update appearance to "Start"
     set(shared.play_tgl, "string", "Start", "tooltipstring", "Start animation");
   endif
-endfunction
-
-% change speed value label
-function change_speed(source, event)
-  % Change speed
-  %   source: GUI element that triggered function
-  %   event:  additional information (not used)
-
-  % Collect data
-  shared = guidata(source);
-  % Update speed label
-  speed = round(100 * get(shared.speed_sld, "value"));
-  set(shared.speed_lbl, "string", sprintf("Speediness: %d / 100", speed))
-endfunction
-
-% change p value label
-function change_p_value(source, event)
-  % Change p value
-  %   source: GUI element that triggered function
-  %   event:  additional information (not used)
-
-  % Collect data
-  shared = guidata(source);
-  % Update speed label
-  speed = round(100 * get(shared.p_value_sld, "value"));
-  set(shared.p_value_lbl, "string", sprintf("Tree growing rate: %d / 100", speed))
-endfunction
-
-% change f value label
-function change_f_value(source, event)
-  % Change f value
-  %   source: GUI element that triggered function
-  %   event:  additional information (not used)
-
-  % Collect data
-  shared = guidata(source);
-  % Update speed label
-  speed = round(100 * get(shared.f_value_sld, "value"));
-  set(shared.f_value_lbl, "string", sprintf("Fire spreading rate: %d / 100", speed))
 endfunction
 
 
@@ -392,27 +352,27 @@ function click_save(source, event)
 
 
 function click_load(source, event)
-  %load file to display
-    % Load world of user
-    % source: Gui element that triggered function
-    % event:  additional information (not used)
-    % is the game on
-  % get data
-  shared = guidata(source);
-  % get file
-  file = uigetfile("*.csv", "Selecteer file");
-  %open file
-  shared.world = csvread(file);
-  if shared.world == 1 | shared.world == 0 | shared.world == 2 % check if file is ok
-    % show file in gui
-    set(shared.img, "cdata", shared.world);
-    shared = guidata(source, shared);
-  else
-    msgbox("Wrong file can only have 0, 1 and 2 as content", "Wrong content")
-  endif
+  % Load the world from file (callback function)
+  %   source: GUI element that triggered function
+  %   event:  additional information (not used)
 
-endfunction
-
+  % Get filename from user
+  [filename, filepath] = uigetfile(
+    {"*.csv;*.txt", "Supported text data formats"},
+    "Choose file");
+  % Check if a valid file was chosen
+  if ischar(filename) && ischar(filepath)
+    shared = guidata(source); 
+    % Load text data file
+    if strcmpi(filename(end-3 : end), ".csv") || ...
+       strcmpi(filename(end-3 : end), ".txt")
+      shared.world = csvread(fullfile(filepath, filename));
+      % Update figure and attached data
+      set(shared.img, "cdata", shared.world);
+      guidata(source, shared);
+    end
+  end
+end
 function click_color_inv(source, event)
    % change color of world to inverse
     % source: Gui element that triggered function
@@ -421,14 +381,15 @@ function click_color_inv(source, event)
   % get data
   shared = guidata(source);
   % if the other color box is on
-  if get(shared.color_box_inv, "value")
-    set(shared.color_box_inv, "value", "0")
+  if get(shared.color_box_prp, "value")
+    set(shared.color_box_prp, "value", "0")
   endif
   if get(shared.color_box_inv, "value")
     set(shared.axs, "colormap", ([211, 97, 53; 76, 108, 35; 239, 239, 230] ./ 255)) % make world inverse
   else
     set(shared.axs, "colormap", ([76, 108, 35; 211, 97, 53; 239, 239, 230] ./ 255))  % make world normal
   endif
+  guidata(source, shared);
 endfunction
 
 function click_color_prp(source, event)
