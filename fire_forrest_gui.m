@@ -53,7 +53,7 @@ shared.p_value_sld = uicontrol(
   "position", [1132 590 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0],
-  "callback", @click_play_stop,
+  "callback", @change_p_value,
   "tooltipstring", "Regrow factor of the forrest"
 );
 
@@ -77,12 +77,12 @@ shared.f_value_sld = uicontrol(
   "position", [1132 650 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0],
-  "callback", @click_play_stop,
+  "callback", @change_f_value,
   "tooltipstring", "Fastness of forest fire spreading"
 );
 
 %label f value slider
-shared.p_value_lbl = uicontrol(
+shared.f_value_lbl = uicontrol(
   "style", "text",
   "units", "pixels",
   "position", [1132 680 350 30],
@@ -100,7 +100,7 @@ shared.speed_sld = uicontrol(
   "position", [1132 710 350 30],
   "backgroundcolor", [0.3, 0.4, 0.9],
   "foregroundcolor", [0 , 0, 0.0],
-  "callback", @click_play_stop,
+  "callback", @change_speed,
   "tooltipstring", "Speediness"
 );
 
@@ -229,6 +229,7 @@ shared.img = imagesc(shared.axs, shared.world, [0 2]);
 axis(shared.axs, "off");
 guidata(shared.fig, shared);
 
+ %next generation
 function click_step(source, event)
   %Creates next generation of world
     % source: Gui element that triggered function
@@ -279,6 +280,44 @@ function click_play_stop(source, event)
   endif
 endfunction
 
+% change speed value label
+function change_speed(source, event)
+  % Change speed
+  %   source: GUI element that triggered function
+  %   event:  additional information (not used)
+
+  % Collect data
+  shared = guidata(source);
+  % Update speed label
+  speed = round(100 * get(shared.speed_sld, "value"));
+  set(shared.speed_lbl, "string", sprintf("Speediness: %d / 100", speed))
+endfunction
+
+% change p value label
+function change_p_value(source, event)
+  % Change p value
+  %   source: GUI element that triggered function
+  %   event:  additional information (not used)
+
+  % Collect data
+  shared = guidata(source);
+  % Update speed label
+  speed = round(100 * get(shared.p_value_sld, "value"));
+  set(shared.p_value_lbl, "string", sprintf("Tree growing rate: %d / 100", speed))
+endfunction
+
+% change f value label
+function change_f_value(source, event)
+  % Change f value
+  %   source: GUI element that triggered function
+  %   event:  additional information (not used)
+
+  % Collect data
+  shared = guidata(source);
+  % Update speed label
+  speed = round(100 * get(shared.f_value_sld, "value"));
+  set(shared.f_value_lbl, "string", sprintf("Fire spreading rate: %d / 100", speed))
+endfunction
 
 %Makes world clean
 function click_clear(source, event)
@@ -362,7 +401,7 @@ function click_load(source, event)
     "Choose file");
   % Check if a valid file was chosen
   if ischar(filename) && ischar(filepath)
-    shared = guidata(source); 
+    shared = guidata(source);
     % Load text data file
     if strcmpi(filename(end-3 : end), ".csv") || ...
        strcmpi(filename(end-3 : end), ".txt")
